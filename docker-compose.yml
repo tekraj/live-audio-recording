@@ -1,0 +1,45 @@
+version: '3.9'
+
+services:
+  redis:
+      image: redis:latest
+      container_name: audio-recorder-redis
+      command:
+        [
+          'redis-server',
+          '--bind',
+          'redis',
+          '--port',
+          '6379',
+          '--databases',
+          '1600',
+        ]
+      ports:
+        - 6378:6379
+      networks:
+        - audio-recorder-network
+
+  audio-recorder:
+    container_name: audio_recorder
+    image: audio_recorder:1.0.0
+    depends_on:
+      - redis
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    environment:
+      - PORT_NUMBER=5000
+    env_file:
+      - .env
+    ports:
+      - 5000:5000
+    networks:
+      - audio-recorder-network
+    volumes:
+      - ./:/app
+    restart: always
+    command: pnpm run start-dev
+
+networks:
+  audio-recorder-network:
+    driver: bridge

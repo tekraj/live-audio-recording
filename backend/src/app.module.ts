@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AudioGatewayGateway } from './audio-gateway/audio-gateway.gateway';
+import { AudioGateway } from './websocket-gateways/audio/audio.gateway';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [],
+  imports: [ConfigModule.forRoot()],
   controllers: [AppController],
-  providers: [AppService, AudioGatewayGateway],
+  providers: [AppService, AudioGateway],
 })
 export class AppModule {}
