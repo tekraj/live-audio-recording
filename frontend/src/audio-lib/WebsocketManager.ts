@@ -13,7 +13,7 @@ export class WebsocketManager {
   paused = false;
   audioSocketNameSpace = "/audio";
   webSocketURL = process.env.REACT_APP_AUDIO_SERVER_URL;
-  saveAudioPath = "/recorder/save-audio";
+  saveAudioPath = "/save-audio";
   queryParams = { audioFileName: "" };
   onFinished?: () => void;
   onError?: (status: string, message: string) => void;

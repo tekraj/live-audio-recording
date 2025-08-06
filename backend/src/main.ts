@@ -1,14 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { RedisIoAdapter } from './adapters/RedisAdapter';
 import { join } from 'path';
+import { SocketIoAdapter } from './adapters/socket-io-adapter';
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  const redisIoAdapter = new RedisIoAdapter(app);
-  await redisIoAdapter.connectToRedis();
+  const wsAdapter = new SocketIoAdapter(app);
   app.enableCors();
-  app.useWebSocketAdapter(redisIoAdapter);
+  app.useWebSocketAdapter(wsAdapter);
   const port = process.env.PORT_NUMBER || 5050;
   app.useStaticAssets(join(__dirname, '..', 'public'));
   await app
