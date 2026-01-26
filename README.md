@@ -3,6 +3,8 @@
 A simple full-stack application for recording high-quality audio from the browser in real-time.
 
 ## Architecture
+![Live Audio Recording Application](audio-recorder.png)
+
 
 - **Frontend**: React application (port 3000)
 - **Backend**: NestJS API with WebSocket support (port 3000)
@@ -159,24 +161,3 @@ docker-compose up --build
 ├── docker-compose.yml   # Service orchestration
 └── .env.example         # Environment template
 ```
-
-## Learning Resources
-
-This project is designed as a learning tool. Each service demonstrates:
-
-- **Backend**: NestJS, WebSockets, database integration
-- **Frontend**: React, real-time communication, audio APIs
-- **DevOps**: Docker, Docker Compose, service orchestration
-- **Python**: Flask, audio processing
-
-## Notes for Students
-
-- All Dockerfiles are simple and easy to understand
-- Services use environment variables for configuration
-- Logs can be viewed with `docker-compose logs -f <service>`
-- Services automatically restart on failure (except frontend)
-- Hot-reload is enabled for development
-
----
-
-Happy Learning! 🚀

@@ -13,6 +13,7 @@ function App() {
     stopRecording,
     recordingState,
     audioURL,
+    audioFile,
   } = useRecordAudio();
   const audioRef = useRef<HTMLAudioElement>(null);
   const [audioName, setAudioName] = useState("");
@@ -33,7 +34,7 @@ function App() {
     if(!audioURL){
       return;
     }
-    axios.post(process.env.REACT_APP_AUDIO_TRANSCRIBER_URL+'transcribe-audio',{file:audioURL}).then(data=>{
+    axios.post(process.env.REACT_APP_AUDIO_TRANSCRIBER_URL+'transcribe-audio',{file:audioFile}).then(data=>{
       const response = data.data;
       if(response){
         setTrancription(response);

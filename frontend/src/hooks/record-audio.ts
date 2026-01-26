@@ -5,12 +5,14 @@ export const useRecordAudio = () => {
   const [recordingState, setRecordingState] = useState<RecordingState>(RecordingState.IDEAL);
   const webSocketManager = useRef<WebsocketManager>();
   const [audioURL,setAudioURL] = useState('');
+  const [audioFile,setAudioFile] = useState('');
   const onError = (status: string, message: string) => {
     console.log({ status, message });
   };
 
   const onData = (event: string,message: string)=>{
     if(event==='audio-file'){
+      setAudioFile(message);
       setAudioURL(`${process.env.REACT_APP_AUDIO_SERVER_URL}${message}`);
     }
   }
@@ -55,6 +57,7 @@ export const useRecordAudio = () => {
     resumeRecording,
     stopRecording,
     recordingState,
-    audioURL
+    audioURL,
+    audioFile,
   };
 };
