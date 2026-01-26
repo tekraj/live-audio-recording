@@ -1,45 +1,127 @@
 version: '3.9'
 
-services:
-  redis:
-      image: redis:latest
-      container_name: audio-recorder-redis
-      command:
-        [
-          'redis-server',
-          '--bind',
-          'redis',
-          '--port',
-          '6379',
-          '--databases',
-          '1600',
-        ]
-      ports:
-        - 6378:6379
-      networks:
-        - audio-recorder-network
 
-  audio-recorder:
-    container_name: audio_recorder
-    image: audio_recorder:1.0.0
-    depends_on:
-      - redis
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-    environment:
-      - PORT_NUMBER=5000
+
+services:
+  # Redis - In-memory data store
+  redis:
+    image: redis:7-alpine
+    container_name: audio-redis
+    ports:
+      - "6378:6379"
+    networks:
+      - audio-network
+    command: redis-server
+    volumes:
+      - redis-data:/data
+    env_file:
+      - .env
+
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: audio-db
     env_file:
       - .env
     ports:
-      - 5000:5000
-    networks:
-      - audio-recorder-network
+      - "3308:3306"
     volumes:
-      - ./:/app
-    restart: always
-    command: pnpm run start-dev
+      - db-volume:/var/lib/mysql
+    networks:
+      - audio-network
+    
+
+  # Backend - NestJS API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: audio-backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - db
+    networks:
+      - audio-network
+    volumes:
+      - audio-volume:/app/audio-recordings
+
+  # Frontend - React App (Dev Server)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: audio-frontend
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"
+    networks:
+      - audio-network
+
+  # Nginx - Serve Frontend
+  nginx:
+    image: nginx:alpine
+    container_name: audio-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - audio-network
+
+  # Audio Transcription Service - Python Flask
+  audio-transcriber:
+    build:
+      context: ./audio-transcription
+      dockerfile: Dockerfile
+    container_name: audio-transcriber
+    ports:
+      - "5555:5555"
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    networks:
+      - audio-network
+    volumes:
+      - audio-volume:/app/recordings
 
 networks:
-  audio-recorder-network:
+  audio-network:
     driver: bridge
+
+volumes:
+  db-volume:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/db
+
+  frontend-build:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/frontend
+
+  audio-volume:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/audio
+
+  redis-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/redis

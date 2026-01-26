@@ -8,7 +8,7 @@ async function bootstrap() {
   const wsAdapter = new SocketIoAdapter(app);
   app.enableCors();
   app.useWebSocketAdapter(wsAdapter);
-  const port = process.env.PORT_NUMBER || 5050;
+  const port = process.env.PORT_NUMBER || 5000;
   app.useStaticAssets(join(__dirname, '..', 'public'));
   await app
     .listen(port)

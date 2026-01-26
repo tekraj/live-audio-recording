@@ -1,0 +1,17 @@
+node_modules
+npm-debug.log
+dist
+.git
+.gitignore
+README.md
+.env
+.env.local
+.DS_Store
+coverage
+.eslintcache
+.prettier-ignore
+.idea
+.vscode
+*.log
+.yarn/cache
+.pnpm-store

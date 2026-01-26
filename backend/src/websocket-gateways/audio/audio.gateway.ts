@@ -28,9 +28,10 @@ export class AudioGateway
   uploadDir = '';
   private wavFileWriters: Record<string, wav.FileWriter> = {};
   constructor() {
-    this.uploadDir = join('public', 'audios');
+    // Use mounted audio volume in Docker or public/audios locally
+    this.uploadDir = process.env.AUDIO_UPLOAD_DIR || join('public', 'audios');
     if (!existsSync(this.uploadDir)) {
-      mkdirSync(this.uploadDir);
+      mkdirSync(this.uploadDir, { recursive: true });
     }
   }
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
