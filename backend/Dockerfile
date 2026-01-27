@@ -1,44 +1,56 @@
-# Backend - NestJS Application
-FROM node:18-alpine AS builder
+# Stage 1: Build
+FROM node:22-alpine AS builder
 
-# Install pnpm
-RUN npm install -g pnpm
+# Install build tools required for native modules like bcrypt and for Prisma native binaries
+RUN apk add --no-cache python3 make g++ openssl
 
-# Set working directory
+# Enable Corepack and install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 WORKDIR /app
 
-# Copy package files
+# Copy dependency files and fetch dependencies
 COPY package.json pnpm-lock.yaml ./
+RUN pnpm fetch --frozen-lockfile
 
-# Install dependencies
-RUN pnpm install
-
-# Copy source code
+# Copy the full source code including Prisma schema
 COPY . .
 
-# Build the application
-RUN pnpm run build
+# Install actual dependencies using fetched data
+RUN pnpm install --frozen-lockfile
+ARG DATABASE_URL
 
-# Production stage
-FROM node:18-alpine
+# 2. Set it as an environment variable for the build process
+ENV DATABASE_URL=$DATABASE_URL
+# Generate Prisma clients for all schemas
+RUN npx prisma generate 
 
-# Install pnpm
-RUN npm install -g pnpm
+# Rebuild bcrypt to ensure native bindings are correctly compiled
+RUN pnpm rebuild bcrypt
+
+# Build the app
+RUN pnpm build
+
+# Stage 2: Production
+FROM node:22-alpine AS production
+
+# Install build tools for bcrypt runtime
+RUN apk add --no-cache python3 make g++ openssl
+
+# Enable Corepack and install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 
-# Copy package files
-COPY package.json pnpm-lock.yaml ./
-
-# Install only production dependencies
-RUN pnpm install --prod
-
-# Copy built application from builder stage
+# Copy necessary files from builder
+COPY --from=builder /app/package.json /app/pnpm-lock.yaml ./
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/generated/ ./generated
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/node_modules ./node_modules
 
-# Expose port
+# Rebuild bcrypt for production environment
+RUN pnpm rebuild bcrypt
+
 EXPOSE 5000
-
-# Run production server
-CMD ["node", "dist/main.js"]
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { RecordingState, WebsocketManager } from "../audio-lib/WebsocketManager";
+import { audioService } from "../services/audioService";
 
 export const useRecordAudio = () => {
   const [recordingState, setRecordingState] = useState<RecordingState>(RecordingState.IDEAL);
@@ -13,7 +14,7 @@ export const useRecordAudio = () => {
   const onData = (event: string,message: string)=>{
     if(event==='audio-file'){
       setAudioFile(message);
-      setAudioURL(`${process.env.REACT_APP_AUDIO_SERVER_URL}${message}`);
+      setAudioURL(audioService.getAudioFileUrl(message,'wav'));
     }
   }
   const stopRecording = () => {

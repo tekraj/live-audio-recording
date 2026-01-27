@@ -1,5 +1,4 @@
 /node_modules/
-.env
 __pycache__
 *.log
 /data/audio

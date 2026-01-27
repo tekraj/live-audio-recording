@@ -1,10 +1,11 @@
 import { Controller, Get, Param,StreamableFile } from '@nestjs/common';
 import { AppService } from './app.service';
+import { DBService } from './websocket-gateways/services/db.service';
 
 @Controller()
 export class AppController {
   
-  constructor(private readonly appService: AppService) {}
+  constructor(private readonly appService: AppService,private dbService: DBService) {}
 
   @Get()
   getHello(): string {
@@ -21,5 +22,10 @@ export class AppController {
       type: 'audio/wav', 
       disposition: 'inline',
     });
+  }
+
+  @Get('audio-records')
+  async listAudioRecords() {
+    return this.dbService.listAudioRecords();
   }
 }

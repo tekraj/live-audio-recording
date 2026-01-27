@@ -8,7 +8,7 @@ services:
     image: redis:7-alpine
     container_name: audio-redis
     ports:
-      - "6378:6379"
+      - "6377:6379"
     networks:
       - audio-network
     command: redis-server
@@ -20,15 +20,24 @@ services:
   # MySQL Database
   db:
     image: mysql:8.0
-    container_name: audio-db
-    env_file:
-      - .env
+    restart: always
+    cap_add:
+      - SYS_NICE
+    environment:
+      - MYSQL_DATABASE=live_audio_db
+      - MYSQL_ROOT_PASSWORD=mauFJcuf5dhRMQrjj
     ports:
-      - "3308:3306"
+      - '3308:3306'
     volumes:
       - db-volume:/var/lib/mysql
     networks:
       - audio-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot", "-pmauFJcuf5dhRMQrjj"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    
     
 
   # Backend - NestJS API
@@ -36,18 +45,23 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      args:
+        - DATABASE_URL=${DATABASE_URL}
     container_name: audio-backend
     ports:
       - "5000:5000"
+    environment:
+      - NODE_ENV=production
     env_file:
       - .env
     depends_on:
-      - redis
-      - db
+      db:
+        condition: service_healthy
     networks:
       - audio-network
     volumes:
       - audio-volume:/app/audio-recordings
+    command: sh -c "npx prisma migrate deploy && node dist/main.js"
 
   # Frontend - React App (Dev Server)
   frontend:

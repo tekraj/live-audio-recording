@@ -4,6 +4,7 @@ import { RecordingState } from "./audio-lib/WebsocketManager";
 import { useRecordAudio } from "./hooks/record-audio";
 import { v4 as uuidv4 } from 'uuid';
 import axios from "axios";
+import { AudioTable, AudioTableRef } from "./components/AudioTable";
 
 function App() {
   const {
@@ -16,6 +17,7 @@ function App() {
     audioFile,
   } = useRecordAudio();
   const audioRef = useRef<HTMLAudioElement>(null);
+  const audioTableRef = useRef<AudioTableRef>(null);
   const [audioName, setAudioName] = useState("");
   const [transcription, setTrancription] = useState('');
   
@@ -42,6 +44,14 @@ function App() {
     })
   },[audioURL]);
 
+  const handleStopRecording = () => {
+    stopRecording();
+    // Refresh audio table after stopping recording
+    setTimeout(() => {
+      audioTableRef.current?.refresh();
+    }, 500);
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-400 to-blue-500 text-white">
       <header className="py-6 bg-gradient-to-r from-white/20 to-white/30 shadow-md text-center">
@@ -66,7 +76,7 @@ function App() {
             </button>
             <button
               className="bg-red-500 hover:bg-red-700 transition-colors duration-300 ease-in-out text-white font-bold py-3 px-6 rounded-full shadow-lg transform hover:scale-105 ml-4"
-              onClick={stopRecording}
+              onClick={handleStopRecording}
             >
               Stop Recording
             </button>
@@ -106,6 +116,10 @@ function App() {
         </div>
       )}
 
+      <div className="my-8 mx-auto w-full max-w-4xl">
+        <h2 className="text-2xl font-bold mb-4 text-center">Recorded Audios</h2>
+        <AudioTable ref={audioTableRef} />
+      </div>
       <footer className="py-6 mt-auto bg-gradient-to-r from-white/20 to-white/30 shadow-md text-center">
         <p className="text-gray-200 text-sm">
           &copy; Tek Raj Pant {new Date().getFullYear()}

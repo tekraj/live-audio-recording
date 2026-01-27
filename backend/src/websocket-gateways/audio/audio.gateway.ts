@@ -14,6 +14,8 @@ import { join } from 'path';
 import { Readable } from 'stream';
 import * as wav from 'wav';
 import type { Server } from 'ws';
+import { S3Service } from '../services/s3.service';
+import { DBService } from '../services/db.service';
 
 @WebSocketGateway({
   transports: ['websocket'],
@@ -27,8 +29,7 @@ export class AudioGateway
   @WebSocketServer() server: Server;
   uploadDir = '';
   private wavFileWriters: Record<string, wav.FileWriter> = {};
-  constructor() {
-    // Use mounted audio volume in Docker or public/audios locally
+  constructor(private s3Service: S3Service,private dbService: DBService) {
     this.uploadDir = process.env.AUDIO_UPLOAD_DIR || join('public', 'audios');
     if (!existsSync(this.uploadDir)) {
       mkdirSync(this.uploadDir, { recursive: true });
@@ -85,19 +86,28 @@ export class AudioGateway
     } catch (e) {}
   }
   @SubscribeMessage('stop-recording')
-  handleStopRecording(client: Socket) {
+  async handleStopRecording(client: Socket) {
     console.log('client disconnected');
     const audioFile = client.handshake.query.audioFileName as string;
     client.emit('recording-stopped', `audios/${audioFile}.wav`);
-    this.handleCloseSocket(client);
+    await this.handleCloseSocket(client);
     setTimeout(() => {
       client.disconnect();
     }, 2000);
   }
 
-  private handleCloseSocket(client: Socket) {
+  private async handleCloseSocket(client: Socket) {
     const audioFileName = client.handshake.query.audioFileName as string;
     this.wavFileWriters[audioFileName]?.end();
     delete this.wavFileWriters[audioFileName];
+    await this.dbService.createAudioRecord({
+      filename: audioFileName,
+      fileFormat:'wav',
+      length: 0,
+    });
+    await this.s3Service.uploadFile(
+      `${audioFileName}.wav`,
+    )
+
   }
 }

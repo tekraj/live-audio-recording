@@ -19,5 +19,10 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
+    "paths": {
+      "~": ["./src/*"],
+      "@/mysql-prisma-client/*": ["./generated/prisma/*"]
+    }
   },
+  "exclude": ["node_modules", "dist","generated"]
 }
