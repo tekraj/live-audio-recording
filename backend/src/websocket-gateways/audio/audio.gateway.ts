@@ -88,7 +88,7 @@ export class AudioGateway
   async handleStopRecording(client: Socket) {
     console.log('client disconnected');
     const audioFile = client.handshake.query.audioFileName as string;
-    client.emit('recording-stopped', `audios/${audioFile}.wav`);
+    client.emit('recording-stopped', audioFile);
     await this.handleCloseSocket(client);
     setTimeout(() => {
       client.disconnect();
