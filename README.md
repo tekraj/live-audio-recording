@@ -161,3 +161,4 @@ docker-compose up --build
 ├── docker-compose.yml   # Service orchestration
 └── .env.example         # Environment template
 ```
+chrome://flags/#unsafely-treat-insecure-origin-as-secure

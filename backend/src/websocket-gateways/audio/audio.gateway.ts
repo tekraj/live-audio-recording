@@ -105,8 +105,10 @@ export class AudioGateway
         fileFormat: 'wav',
         length: 0,
       });
+      const fileName = `${audioFileName}.wav`
       await this.s3Service.uploadFile(
-        `${audioFileName}.wav`,
+        fileName,
+        join(this.uploadDir, fileName)
       )
     } catch (e) {
       console.error('Error in handleCloseSocket:', e);

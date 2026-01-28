@@ -62,7 +62,7 @@ services:
     volumes:
       - audio-volume:/app/audio-recordings
     command: sh -c "npx prisma migrate deploy && node dist/main.js"
-
+    restart: always
   # Frontend - React App (Dev Server)
   frontend:
     build:
