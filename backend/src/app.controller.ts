@@ -21,6 +21,11 @@ export class AppController {
 
   @Get('audio-records')
   async listAudioRecords() {
-    return this.dbService.listAudioRecords();
+    const audios = await this.dbService.listAudioRecords();
+    const audiosWithUrl = await Promise.all(audios.map(async(audio)=>{
+      const url = await this.s3Service.getFileUrl(`${audio.filename}.${audio.fileFormat}`);
+      return {...audio, url};
+    }));
+    return audiosWithUrl;
   }
 }
