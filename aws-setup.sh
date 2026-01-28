@@ -25,7 +25,7 @@ systemctl start docker
 systemctl enable docker
 groupadd -f docker
 usermod -aG docker ubuntu
-chown root:docker /var/run/docker.sock
+chown ubuntu:docker /var/run/docker.sock
 
 # 5. FIX: Handle GitHub SSH fingerprinting
 mkdir -p /root/.ssh
@@ -35,3 +35,5 @@ mkdir -p data/audio
 mkdir data/redis
 mkdir data/db
 mkdir data/frontend
+
+chown ubuntu:ubuntu /home/ubuntu/live-audio-recording
