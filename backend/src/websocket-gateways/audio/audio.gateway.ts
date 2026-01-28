@@ -24,12 +24,11 @@ import { DBService } from '../services/db.service';
   path: '/save-audio',
 })
 export class AudioGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
   uploadDir = '';
   private wavFileWriters: Record<string, wav.FileWriter> = {};
-  constructor(private s3Service: S3Service,private dbService: DBService) {
+  constructor(private s3Service: S3Service, private dbService: DBService) {
     this.uploadDir = process.env.AUDIO_UPLOAD_DIR || join('public', 'audios');
     if (!existsSync(this.uploadDir)) {
       mkdirSync(this.uploadDir, { recursive: true });
@@ -77,13 +76,13 @@ export class AudioGateway
       const buffer = Buffer.from(payload);
       const readable = new Readable();
       // eslint-disable-next-line @typescript-eslint/no-empty-function
-      readable._read = () => {}; // _read is required but you can noop it
+      readable._read = () => { }; // _read is required but you can noop it
       readable.push(buffer);
       readable.push(null);
       readable.pipe(this.wavFileWriters[audioFileName], {
         end: false,
       });
-    } catch (e) {}
+    } catch (e) { }
   }
   @SubscribeMessage('stop-recording')
   async handleStopRecording(client: Socket) {
@@ -97,17 +96,20 @@ export class AudioGateway
   }
 
   private async handleCloseSocket(client: Socket) {
-    const audioFileName = client.handshake.query.audioFileName as string;
-    this.wavFileWriters[audioFileName]?.end();
-    delete this.wavFileWriters[audioFileName];
-    await this.dbService.createAudioRecord({
-      filename: audioFileName,
-      fileFormat:'wav',
-      length: 0,
-    });
-    await this.s3Service.uploadFile(
-      `${audioFileName}.wav`,
-    )
-
+    try {
+      const audioFileName = client.handshake.query.audioFileName as string;
+      this.wavFileWriters[audioFileName]?.end();
+      delete this.wavFileWriters[audioFileName];
+      await this.dbService.createAudioRecord({
+        filename: audioFileName,
+        fileFormat: 'wav',
+        length: 0,
+      });
+      await this.s3Service.uploadFile(
+        `${audioFileName}.wav`,
+      )
+    } catch (e) {
+      console.error('Error in handleCloseSocket:', e);
+    }
   }
 }

@@ -1,39 +1,34 @@
 import { Injectable } from '@nestjs/common';
-import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
-// import { createReadStream,  unlinkSync } from 'fs';
-// import { join } from 'path';
+import { S3Client, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
+import { createReadStream, unlinkSync } from 'fs';
+import { join } from 'path';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner'; 
 @Injectable()
 export class S3Service {
   private s3Client: S3Client;
   private bucket: string;
-  constructor(
 
-  ) {
-    this.bucket = process.env.AWS_S3_BUCKET_NAME || 'default-bucket-name';
+  constructor() {
+    this.bucket = process.env.AWS_S3_BUCKET_NAME || 'audio';
     this.s3Client = new S3Client({
       region: process.env.AWS_REGION || 'us-east-1',
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'default-access-key-id',
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'default-secret-access-key',
-      },
     });
   }
 
   async uploadFile(fileName: string): Promise<void> {
-    try {
-      // const body = createReadStream(join('public', 'audios', fileName));
-      // const command = new PutObjectCommand({
-      //   Bucket: this.bucket,
-      //   Key: `audios/${fileName}`,
-      //   Body: body,
-      // });
-      // await this.s3Client.send(command);
-      // unlinkSync(join('public', 'audios', fileName));
-      console.log(fileName+' uploaded to S3');
-    } catch (error) {
-      console.error(`Error uploading file ${fileName} to S3:`, error);
-    }
+      const filePath = join('public', 'audios', fileName);
+      const body = createReadStream(filePath);
 
+      const command = new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: `audios/${fileName}`,
+        Body: body,
+      });
+
+      await this.s3Client.send(command);
+      
+      unlinkSync(filePath);
+      console.log(`${fileName} uploaded to S3 and local file removed.`);
   }
 
   async getFileUrl(fileName: string): Promise<string> {
@@ -41,7 +36,7 @@ export class S3Service {
       Bucket: this.bucket,
       Key: `audios/${fileName}`,
     });
-    await this.s3Client.send(command);
-    return `https://${this.bucket}.s3.amazonaws.com/audios/${fileName}`;
+    const url = await getSignedUrl(this.s3Client, command, { expiresIn: 3600 });
+    return url;
   }
 }

@@ -68,6 +68,9 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - REACT_APP_AUDIO_SERVER_URL=${REACT_APP_AUDIO_SERVER_URL}
+        - REACT_APP_AUDIO_TRANSCRIBER_URL=${REACT_APP_AUDIO_TRANSCRIBER_URL}
     container_name: audio-frontend
     env_file:
       - .env

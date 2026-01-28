@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_AUDIO_SERVER_URL || 'http://localhost:5050';
+const API_BASE_URL = process.env.REACT_APP_AUDIO_SERVER_URL;
 
 export interface AudioRecord {
   id: string;
