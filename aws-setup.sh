@@ -31,7 +31,7 @@ chown root:docker /var/run/docker.sock
 mkdir -p /root/.ssh
 ssh-keyscan github.com >> /root/.ssh/known_hosts
 
-# 6. Clone the Repo
-cd /home/ubuntu
-git clone https://github.com/tekraj/live-audio-recording.git 
-chown -R ubuntu:ubuntu live-audio-recording
+mkdir -p data/audio
+mkdir data/redis
+mkdir data/db
+mkdir data/frontend
