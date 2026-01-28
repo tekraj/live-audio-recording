@@ -8,6 +8,7 @@ export interface AudioRecord {
   createdAt: string;
   duration?: number;
   fileFormat: string;
+  url: string;
 }
 
 const apiClient = axios.create({
@@ -32,8 +33,9 @@ export const audioService = {
   /**
    * Get audio file URL
    */
-  getAudioFileUrl: (filename: string, fileFormat: string): string => {
-    return `${API_BASE_URL}audios/${filename}.${fileFormat}`;
+  getAudioFileUrl: async (filename: string, fileFormat: string): Promise<string> => {
+    const url = await  apiClient.get(`/audios/${filename}.${fileFormat}`);
+    return url.data;
   },
 
   /**

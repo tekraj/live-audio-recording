@@ -108,7 +108,7 @@ export const AudioTable = forwardRef<AudioTableRef>((_, ref) => {
                       }}
                       controls
                       className="h-10"
-                      src={audioService.getAudioFileUrl(record.filename,record.fileFormat||'wav')}
+                      src={record.url}
                       onPlay={() => handleAudioPlay(record.id)}
                       onPause={handleAudioPause}
                     >

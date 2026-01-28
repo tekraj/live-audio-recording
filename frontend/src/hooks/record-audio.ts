@@ -14,7 +14,14 @@ export const useRecordAudio = () => {
   const onData = (event: string,message: string)=>{
     if(event==='audio-file'){
       setAudioFile(message);
-      setAudioURL(audioService.getAudioFileUrl(message,'wav'));
+      (async () => {
+        try {
+          const audioFileUrl = await audioService.getAudioFileUrl(message, 'wav');
+          setAudioURL(audioFileUrl);
+        } catch (err) {
+          console.error('Error saving audio file', err);
+        }
+      })();
     }
   }
   const stopRecording = () => {
