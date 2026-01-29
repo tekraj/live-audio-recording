@@ -1,6 +1,7 @@
 ## 1. Add S3 Permissions to IAM User
 - Go to the AWS Management Console and type "IAM" in the search bar at the top.
-- Select Labs-IAM-User from the list of users.
+- Select Roles from the left sidebar.
+- Search for "LabProfile" role and click on it.
 - Click on the "Add permissions" button.
 - Choose "Attach policies directly".
 - Search for "AmazonS3FullAccess" in the policy list.
