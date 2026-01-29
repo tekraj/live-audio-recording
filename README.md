@@ -161,4 +161,6 @@ docker-compose up --build
 ├── docker-compose.yml   # Service orchestration
 └── .env.example         # Environment template
 ```
+## Notes
+ for testing with ipsecures origins, you may need to enable the following flag in Chrome:
 chrome://flags/#unsafely-treat-insecure-origin-as-secure
