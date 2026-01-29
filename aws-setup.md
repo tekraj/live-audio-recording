@@ -34,3 +34,9 @@
 - Update the .env file with the S3 bucket name created earlier and replace localhost with the IP of the EC2 instance.
 - Run sudo docker compose build
 - RUn sudo docker compose up -d
+
+
+Now open the IP of the EC2 instance in the browser to access the application.
+## Notes
+ for testing with ipsecures origins, you may need to enable the following flag in Chrome:
+chrome://flags/#unsafely-treat-insecure-origin-as-secure
