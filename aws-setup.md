@@ -6,7 +6,6 @@
 - Choose "Attach policies directly".
 - Search for "AmazonS3FullAccess" in the policy list.
 - Check the box next to "AmazonS3FullAccess".
-- Click the "Next: Review" button.
 - Review the permissions and click on the "Add permissions" button to finalize.
 
 ## Create S3 Bucket
