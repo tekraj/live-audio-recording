@@ -12,7 +12,7 @@
 - Go to the AWS Management Console and type "S3" in the search bar at the top.
 - Click on the "Create bucket" button.
 - Enter a unique bucket name (e.g., "liveaudiorecordings<yourname>").
-- Select the AWS Region closest to your users.
+- Select the AWS Region us-east-1 if is different.
 - Leave the other settings as default and click on the "Create bucket" button at the bottom.
 
 ## Create EC2 Instance
