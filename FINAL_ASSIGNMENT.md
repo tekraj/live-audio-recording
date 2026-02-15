@@ -85,9 +85,8 @@ Create 6 subnets as follows:
 - Attach it to `audio-recording-vpc`
 
 #### 1.4 Create NAT Gateway
-- Create an Elastic IP address
-- Create a NAT Gateway named `audio-recording-nat` in subnet **ALB-1**
-- Allocate the Elastic IP to the NAT Gateway
+- Create Regional NAT Gateway named `audio-recording-nat` 
+- Select previously created VPC (`audio-recording-vpc`)
 
 #### 1.5 Create Route Tables
 
