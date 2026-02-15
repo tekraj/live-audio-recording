@@ -157,7 +157,16 @@ Create the following security groups in `audio-recording-vpc`:
 Once the ALB is created:
 1. Go to Load Balancers and select `audio-recording-alb`
 2. Copy the **DNS name** (e.g., `audio-recording-alb-1234567890.us-east-1.elb.amazonaws.com`)
-3. Save it for later use
+
+### 3.4 Cloudflare DNS Integration
+1. Log in to your Cloudflare account
+2. Select (Click) your domain
+3. Go to **DNS** → **Records**
+4. Add/Update a CNAME record:
+   - **Name**: `@` (for root) or a subdomain (e.g., `audio`)
+   - **Type**: CNAME
+   - **Content**: Your ALB DNS name (from Phase 3.3)
+
 
 ---
 
@@ -261,11 +270,10 @@ DATABASE_URL="mysql://admin:<YOUR_RDS_PASSWORD>@<YOUR_RDS_ENDPOINT>:3306/live_au
 
 # S3 Configuration - for storing audio files
 AWS_S3_BUCKET_NAME=<YOUR_S3_BUCKET_NAME>
-AWS_REGION=us-east-1
 
-# Frontend Configuration - USE YOUR ALB DNS
-REACT_APP_AUDIO_SERVER_URL=http://<YOUR_ALB_DNS>/api/
-REACT_APP_AUDIO_TRANSCRIBER_URL=http://<YOUR_ALB_DNS>/transcriber/
+# Frontend Configuration - USE YOUR Domain Name 
+REACT_APP_AUDIO_SERVER_URL=http://<YOUR_DOMAIN_NAME>/api/
+REACT_APP_AUDIO_TRANSCRIBER_URL=http://<YOUR_DOMAIN_NAME>/transcriber/
 
 # Keep other settings as default
 NODE_ENV=production
@@ -277,7 +285,7 @@ Replace:
 - `<YOUR_RDS_ENDPOINT>` with your RDS endpoint (from Phase 4.2)
 - `<YOUR_RDS_PASSWORD>` with your RDS password (from Phase 4.2)
 - `<YOUR_S3_BUCKET_NAME>` with your S3 bucket name (from Phase 0.2)
-- `<YOUR_ALB_DNS>` with your ALB DNS name (from Phase 3.3)
+- `<YOUR_DOMAIN_NAME>` with your DOMAIN name (from Phase 3.3)
 
 Press `Ctrl+X`, then `Y`, then `Enter` to save.
 
@@ -316,298 +324,60 @@ Once both EC2 instances are running and containers are healthy, register them to
 - Status: `Healthy`
 - Health Check Status: `Healthy`
 
-Check the ALB DNS to verify it's working:
-```bash
-curl http://<YOUR_ALB_DNS>/api/health
-```
-
-Should return a response indicating the backend is healthy.
-
 ---
 
-### Phase 8: Cloudflare DNS Integration
-
-#### 8.1 Connect ALB to Cloudflare Domain
-1. Log in to your Cloudflare account
-2. Select your domain
-3. Go to **DNS** → **Records**
-4. Add/Update a CNAME record:
-   - **Name**: `@` (for root) or a subdomain (e.g., `audio`)
-   - **Type**: CNAME
-   - **Content**: Your ALB DNS name (from Phase 3.3)
-
-
-5. Click **Save**
-
-#### 8.2 Test DNS Resolution
-Wait 2-5 minutes for DNS propagation, then test:
-
-```bash
-nslookup your-domain.com
-```
-
-Should resolve to your ALB.
-
-#### 8.3 Access Application
+#### 8.2 Access Application
 Open your browser and navigate to:
 ```
 http://your-domain.com
 ```
 
 You should see the Live Audio Recording application frontend.
-Now update the URL in the frontend to point to your domain instead of ALB DNS:
-
-```bash
-nano .env
-REACT_APP_AUDIO_SERVER_URL=http://your-domain.com/api/
-REACT_APP_AUDIO_TRANSCRIBER_URL=http://your-domain.com/transcriber/
-```
-
----
 
 
+## 📋 Deployment Metadata
 
-
----
-
-## Testing and Verification
-
-### 1. Test ALB Health Check
-```bash
-curl http://<YOUR_ALB_DNS>/api/health
-```
-
-Should return a successful response.
-
-### 2. Test via Cloudflare Domain
-Once DNS is propagated:
-```bash
-curl http://your-domain.com/api/health
-```
-
-### 3. Access Application in Browser
-Open in your browser:
-```
-http://your-domain.com
-```
-
-You should see the Live Audio Recording application with:
-- React frontend loaded
-- Ability to record audio from microphone
-- Real-time audio streaming to backend
-
-
-## Troubleshooting
-
-### Cannot SSH to EC2
-- Verify your public IP is allowed in App-SG (SSH port 22)
-- Check you're using the correct key pair
-- Ensure EC2 has a public IP assigned
-- Verify security group allows your IP: `ssh -i key.pem ubuntu@<EC2_IP>`
-
-### ALB Targets Showing "Unhealthy"
-1. Check security groups:
-   - App-SG should allow HTTP (80) and HTTPS (443) from ALB-SG
-   - Verify DB-SG allows MySQL (3306) from App-SG
-2. Verify EC2 containers running: `docker compose ps`
-3. Check backend logs: `docker compose logs backend`
-4. Ensure RDS endpoint and credentials are correct in `.env`
-5. Give targets 2-3 minutes to pass health checks
-
-### Cannot Connect to RDS from EC2
-1. Verify RDS database is in "Available" state
-2. Verify security groups:
-   - DB-SG should allow MySQL (3306) from App-SG
-   - App-SG should allow all outbound traffic (should be default)
-3. Check RDS endpoint is correct in `.env`
-4. Test from EC2: `mysql -h <RDS_ENDPOINT> -u admin -p`
-5. Check logs: `docker compose logs backend | grep -i "error"`
-
-### Docker Compose Not Starting
-1. Verify Docker is running: `docker ps`
-2. Check `.env` file syntax (no quotes around values)
-3. Verify all environment variables are set
-4. Build again: `docker compose build --no-cache`
-5. Check logs: `docker compose logs`
-
-### DNS Not Resolving
-1. Wait 5-10 minutes for DNS propagation
-2. Clear DNS cache: `nslookup -debug your-domain.com`
-3. Verify CNAME record in Cloudflare points to ALB DNS
-4. Use incognito browser mode
-5. Check Cloudflare DNS status in dashboard
-
-### Application Loading Slowly
-1. Check ALB target health: all should be "Healthy"
-2. Monitor EC2 resources: CPU and memory usage
-3. Check network connectivity between EC2 and RDS
-4. Review application logs for errors
-5. Verify backend health endpoint: `/api/health`
-
-### File Permission Errors on EC2
-```bash
-# Give Docker permission to current user
-sudo usermod -aG docker ubuntu
-
-# Log out and back in for changes to take effect
-exit
-```
+| Resource | Value / ID |
+| :--- | :--- |
+| **VPC ID** | `vpc-_____________________` |
+| **S3 Bucket Name** | `audio-recordings-_____________________` |
+| **ALB DNS Name** | `_____________________.us-east-1.elb.amazonaws.com` |
+| **RDS Endpoint** | `_____________________.rds.amazonaws.com` |
+| **Cloudflare Domain** | `_____________________` |
+| **EC2 Instance IDs** | `i-__________, i-__________` |
+| **EC2 Public IPs** | `__________, __________` |
 
 ---
 
-## Deployment Checklist
+## ✅ Deployment Checklist
 
-**Phase 0: IAM and S3**
-- [ ] LabProfileRole updated with AmazonS3FullAccess policy
-- [ ] S3 bucket created: `audio-recordings-<your-name>`
-- [ ] S3 bucket has public read access enabled
-- [ ] S3 bucket name documented
+### Phase 0: Permissions & Storage
+- [ ] **IAM Role:** `LabRole` updated with `AmazonS3FullAccess`.
+- [ ] **S3 Bucket:** Unique bucket created in `us-east-1`.
 
-**Phase 1: VPC & Networking**
-- [ ] VPC `audio-recording-vpc` created (10.0.0.0/16)
-- [ ] 6 subnets created (ALB-1, ALB-2, App-1, App-2, DB-1, DB-2)
-- [ ] Internet Gateway created and attached to VPC
-- [ ] NAT Gateway created in ALB-1
-- [ ] Public Route Table created and associated with ALB and App subnets
-- [ ] Private Route Table created and associated with DB subnets
+### Phase 1 & 2: Infrastructure & Security
+- [ ] **VPC:** `audio-recording-vpc` created (10.0.0.0/16).
+- [ ] **Subnets:** 4 Public (ALB/App) and 2 Private (DB) subnets configured.
+- [ ] **Routing:** IGW attached for Public subnets; NAT Gateway configured for Private subnets.
+- [ ] **Security Groups:** - `ALB-SG`: Port 80/443 open to world.
+    - `App-SG`: Port 80/443 from ALB; Port 22 from My IP.
+    - `DB-SG`: Port 3306 strictly from `App-SG`.
 
-**Phase 2: Security Groups**
-- [ ] ALB-SG created (HTTP 80, HTTPS 443 from 0.0.0.0/0)
-- [ ] App-SG created (HTTP/HTTPS from ALB-SG, SSH from your IP)
-- [ ] DB-SG created (MySQL 3306 from App-SG)
+### Phase 3 & 4: Load Balancer & RDS
+- [ ] **Target Group:** `audio-recording-tg` created (HTTP:80).
+- [ ] **ALB:** Internet-facing ALB deployed in `ALB-1` and `ALB-2`.
+- [ ] **Cloudflare:** CNAME record added pointing to ALB DNS.
+- [ ] **RDS:** MySQL 8.0 instance running in Private DB subnets.
 
-**Phase 3: Load Balancer**
-- [ ] Target Group `audio-recording-tg` created (port 5000)
-- [ ] ALB `audio-recording-alb` created in public subnets
-- [ ] ALB DNS name copied and saved
+### Phase 5 & 6: EC2 & App Configuration
+- [ ] **EC2 Instances:** 2x `t2.medium` instances launched with `LabInstanceProfile`.
+- [ ] **Environment:** `.env` file updated with RDS endpoint, S3 bucket name, and Domain URLs.
+- [ ] **Docker:** `docker compose up -d` successful (Backend, Frontend, Nginx).
 
-**Phase 4: RDS Database**
-- [ ] DB Subnet Group created (DB-1 and DB-2)
-- [ ] RDS MySQL instance created (`audio-recording-db`)
-- [ ] RDS endpoint, username, password copied and saved
-- [ ] RDS in Available state
-- [ ] RDS security group is DB-SG
-
-**Phase 5: EC2 Instances**
-- [ ] 2 EC2 instances launched (t2.medium, Ubuntu 22.04)
-- [ ] Instance 1 in App-1 subnet with public IP
-- [ ] Instance 2 in App-2 subnet with public IP
-- [ ] Both instances in App-SG security group
-- [ ] Both instances assigned LabProfileRole IAM instance profile
-- [ ] Key pair downloaded and secured
-
-**Phase 6: Application Configuration**
-- [ ] Repository cloned on both EC2s
-- [ ] Docker and Docker Compose installed on both EC2s
-- [ ] `.env` file updated with RDS credentials on both EC2s
-- [ ] `.env` file updated with S3 bucket name on both EC2s
-- [ ] `.env` file updated with ALB DNS name on both EC2s
-- [ ] Docker images built on both EC2s
-- [ ] Containers running on both EC2s: `docker compose ps`
-- [ ] Backend connected to RDS (check logs)
-- [ ] Backend can access S3 bucket (verify IAM role attached)
-
-**Phase 7: Load Balancer Integration**
-- [ ] Both EC2 instances registered to target group
-- [ ] Targets showing "Healthy" status
-- [ ] ALB responding: `curl http://<ALB_DNS>/api/health`
-
-**Phase 8: DNS Integration**
-- [ ] Cloudflare CNAME record created pointing to ALB DNS
-- [ ] DNS propagated (test with `nslookup`)
-- [ ] Application accessible via domain: `http://your-domain.com`
-- [ ] Frontend loads and responds
+### Phase 7 & 8: Integration & Testing
+- [ ] **Target Health:** Both instances showing **Healthy** in AWS Console.
+- [ ] **App Access:** Application accessible via custom domain.
+- [ ] **Functional Test:** 5-second audio recording test completed successfully.
 
 ---
 
-## Submission Requirements
-
-Submit a document with the following information:
-
-1. **S3 Bucket Name**: `_____________________`
-2. **VPC ID**: `_____________________`
-3. **ALB DNS Name**: `_____________________`
-4. **RDS Endpoint**: `_____________________`
-5. **Cloudflare Domain**: `_____________________`
-6. **EC2 Instance IDs**: `_____________________`
-7. **EC2 Public IP Addresses**: `_____________________`
-8. **Screenshots:**
-   - [ ] AWS IAM showing LabProfileRole with S3FullAccess policy attached
-   - [ ] S3 bucket created and visible in S3 console
-   - [ ] Target Group showing both instances as "Healthy"
-   - [ ] Application running in browser (showing audio recording interface)
-   - [ ] Docker containers running on EC2: `docker compose ps`
-   - [ ] Backend logs showing successful database connection
-9. **Verification Test:**
-   - [ ] Successfully recorded 5 seconds of audio through the application
-   - [ ] Screenshot of recording completion
-
----
-
-## Important Notes
-
-⚠️ **Before You Start:**
-- Get your public IP address: Go to `whatismyipaddress.com`
-- You'll need this to allow SSH access in App-SG
-- Have your Cloudflare domain ready
-
-⚠️ **Security Considerations:**
-- Never commit `.env` file to Git (add to `.gitignore`)
-- Keep RDS password secure
-- App-SG should only allow SSH from your IP, not 0.0.0.0/0
-- In production, enable HTTPS and use SSL certificates
-- Consider enabling encryption at rest for RDS
-
-⚠️ **Cost Estimation:**
-- ALB: ~$16/month (including data processing)
-- RDS Free Tier: Free for 12 months (t3.micro)
-- EC2 t2.medium: ~$30/month each (×2 = $60/month)
-- NAT Gateway: ~$32/month
-- **Total estimated: ~$108/month** (without free tier)
-
-💡 **To minimize costs:**
-- Use Free Tier for RDS (first 12 months)
-- Terminate instances when not needed
-- Turn off NAT Gateway if instances don't need outbound internet
-- Use t2.micro or t2.small if sufficient
-
-⚠️ **Cleanup When Done:**
-1. Delete ALB (will remove target group automatically)
-2. Terminate EC2 instances
-3. Delete RDS database (backup first if needed)
-4. Delete NAT Gateway
-5. Release Elastic IP
-6. Delete VPC (will remove subnets, route tables automatically)
-
-📝 **Useful Commands:**
-
-SSH into EC2:
-```bash
-ssh -i audio-recording-key.pem ubuntu@<EC2_IP>
-```
-
-View Docker containers:
-```bash
-docker compose ps
-docker compose logs -f
-```
-
-Check RDS from EC2:
-```bash
-mysql -h <RDS_ENDPOINT> -u admin -p
-```
-
-View load balancer status:
-```bash
-aws elbv2 describe-target-health --target-group-arn <TARGET_GROUP_ARN>
-```
-
----
-
-## Additional Resources
-
-- [AWS EC2 Documentation](https://docs.aws.amazon.com/ec2/)
-- [AWS RDS Documentation](https://docs.aws.amazon.com/rds/)
-- [AWS ALB Documentation](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/)
-- [Cloudflare DNS Documentation](https://developers.cloudflare.com/dns/)
-- [Docker Documentation](https://docs.docker.com/)
