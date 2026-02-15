@@ -91,7 +91,8 @@ Create 6 subnets as follows:
 #### 1.5 Create Route Tables
 
 **Public Route Table (for ALB and App subnets):**
-- Name: `Public-RT`
+- Name: `Public-RT` 
+- VPC : `audio-recording-vpc`
 - Add route: `0.0.0.0/0` → Internet Gateway (`audio-recording-igw`)
 - Associate subnets: **ALB-1**, **ALB-2**, **App-1**, **App-2**
 
@@ -128,31 +129,29 @@ Create the following security groups in `audio-recording-vpc`:
 
 ### Phase 3: Load Balancer Setup
 
-#### 3.1 Create Target Group
+#### 3.1 Create Target Group (EC2)
 - **Name**: `audio-recording-tg`
 - **Protocol**: HTTP
-- **Port**: 5000
+- **Port**: 80
 - **VPC**: `audio-recording-vpc`
 - **Health Check Settings:**
   - Path: `/health`
   - Protocol: HTTP
-  - Interval: 30 seconds
-  - Healthy Threshold: 2
-  - Unhealthy Threshold: 2
+  - **Note**: Do NOT register targets yet. We'll add EC2 instances after they're created.
 
-#### 3.2 Create Application Load Balancer
+#### 3.2 Create Application Load Balancer (EC2)
+- **Type**: Application Load Balancer
 - **Name**: `audio-recording-alb`
 - **Scheme**: Internet-facing
 - **IP Address Type**: IPv4
 - **VPC**: `audio-recording-vpc`
-- **Subnets**: **ALB-1** and **ALB-2**
+- **Availability Zones and subnet**: **us-east-1a** and **us-east-1b**
 - **Security Groups**: `ALB-SG`
 - **Listeners:**
   - Protocol: HTTP
   - Port: 80
-  - Forward to target group: `audio-recording-tg`
+  - Target Group: `audio-recording-tg`
 
-**Note**: Do NOT register targets yet. You'll add EC2 instances after they're created.
 
 #### 3.3 Copy ALB DNS Name
 Once the ALB is created:
@@ -175,7 +174,7 @@ Once the ALB is created:
 - **Template**: Free Tier
 - **DB Instance Identifier**: `audio-recording-db`
 - **Username**: `admin`
-- **Password**: Auto-generate (AWS will provide)
+- **Password**: Self-Managed, Auto-generate (AWS will provide)
 - **Instance Class**: db.t3.micro
 - **VPC**: `audio-recording-vpc`
 - **DB Subnet Group**: `audio-recording-db-sg`
@@ -210,7 +209,7 @@ Create 2 EC2 instances with the following configuration:
   - Instance 2: **App-2**
 - **Auto-assign Public IP**: **Yes** (needed for SSH access)
 - **Security Group**: `App-SG`
-- **IAM Instance Profile**: **LabProfileRole** (this gives EC2 access to S3 without access keys)
+- **IAM Instance Profile**: **LabInstanceProfile** (this gives EC2 access to S3 without access keys)
 
 **Key Pair:**
 - Create a new key pair named `audio-recording-key`
@@ -236,8 +235,9 @@ git clone https://github.com/tekraj/live-audio-recording.git
 cd live-audio-recording
 ```
 
-#### 6.2 Install Docker and Docker Compose
-Visit https://docs.docker.com/engine/install/ubuntu/ and follow the instructions.
+#### 6.2 Run aws-setup.sh file
+- To run this file you need to update the permission to execute
+- Then run with   `sudo ./aws-setup.sh`
 
 
 #### 6.3 Update .env File with RDS Credentials
