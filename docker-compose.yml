@@ -18,25 +18,25 @@ services:
       - .env
 
   # MySQL Database
-  db:
-    image: mysql:8.0
-    restart: always
-    cap_add:
-      - SYS_NICE
-    environment:
-      - MYSQL_DATABASE=live_audio_db
-      - MYSQL_ROOT_PASSWORD=mauFJcuf5dhRMQrjj
-    ports:
-      - '3308:3306'
-    volumes:
-      - db-volume:/var/lib/mysql
-    networks:
-      - audio-network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot", "-pmauFJcuf5dhRMQrjj"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  # db:
+  #   image: mysql:8.0
+  #   restart: always
+  #   cap_add:
+  #     - SYS_NICE
+  #   environment:
+  #     - MYSQL_DATABASE=live_audio_db
+  #     - MYSQL_ROOT_PASSWORD=mauFJcuf5dhRMQrjj
+  #   ports:
+  #     - '3308:3306'
+  #   volumes:
+  #     - db-volume:/var/lib/mysql
+  #   networks:
+  #     - audio-network
+  #   healthcheck:
+  #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot", "-pmauFJcuf5dhRMQrjj"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
     
     
 
@@ -55,8 +55,7 @@ services:
     env_file:
       - .env
     depends_on:
-      db:
-        condition: service_healthy
+      - redis
     networks:
       - audio-network
     volumes:

@@ -183,7 +183,6 @@ Once the ALB is created:
 - **Security Group**: `DB-SG`
 - **Public Access**: **No**
 - **Initial Database Name**: `live_audio_db`
-- **Backup Retention**: 0 days (for cost savings)
 
 **IMPORTANT:**
 - Once created, copy and save the following:
@@ -217,6 +216,7 @@ Create 2 EC2 instances with the following configuration:
 **Key Pair:**
 - Create a new key pair named `audio-recording-key`
 - Download and save it securely (you'll need it for SSH)
+- Use same audio-recording-key for both instances
 
 **Launch the instances and wait for them to reach "running" state**
 
