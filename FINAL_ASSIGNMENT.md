@@ -179,7 +179,7 @@ Once the ALB is created:
 - **Subnets**: **DB-1** and **DB-2**
 
 #### 4.2 Create RDS MySQL Database
-- **Engine**: MySQL 8.0
+- **Engine**: MySQL 8
 - **Template**: Free Tier
 - **DB Instance Identifier**: `audio-recording-db`
 - **Username**: `admin`
@@ -203,19 +203,18 @@ Once the ALB is created:
 ### Phase 5: EC2 Instances Deployment
 
 #### 5.1 Launch EC2 Instances
-Create 2 EC2 instances with the following configuration:
+Create 2 Seperate EC2 instances with the following configuration:
 
 **Instance Details:**
 - **AMI**: Ubuntu 22.04 LTS
 - **Instance Type**: t2.medium (2 vCPU, 4 GB RAM)
-- **Quantity**: 2
 - **Root Volume**: 20 GB SSD
 
 **Network Configuration:**
 - **VPC**: `audio-recording-vpc`
 - **Subnet**: 
-  - Instance 1: **App-1**
-  - Instance 2: **App-2**
+  - Instance 1: **App-1**(For First Instance)
+  - Instance 2: **App-2** (For Second Instance)
 - **Auto-assign Public IP**: **Yes** (needed for SSH access)
 - **Security Group**: `App-SG`
 - **IAM Instance Profile**: **LabInstanceProfile** (this gives EC2 access to S3 without access keys)
