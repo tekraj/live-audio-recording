@@ -113,7 +113,7 @@ Create the following security groups in `audio-recording-vpc`:
   - HTTP (80) from `0.0.0.0/0`
   - HTTPS (443) from `0.0.0.0/0`
 
-#### 2.2 Application (EC2) Security Group
+#### 2.2 Application Security Group
 - **Name**: `App-SG`
 - **Inbound Rules:**
   - HTTP (80) from `ALB-SG`
