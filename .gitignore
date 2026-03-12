@@ -5,3 +5,4 @@ __pycache__
 /data/redis
 /data/frontend
 /data/db
+/data/nats/

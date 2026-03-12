@@ -16,6 +16,7 @@ export class S3Service {
   }
 
   async uploadFile(fileName: string, filePath: string): Promise<void> {
+    return;
     const body = createReadStream(filePath);
     const command = new PutObjectCommand({
       Bucket: this.bucket,

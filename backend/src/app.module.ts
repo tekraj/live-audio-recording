@@ -10,6 +10,7 @@ import { DBService } from './websocket-gateways/services/db.service';
 import { createKeyv } from '@keyv/redis';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
+import { NatsService } from './websocket-gateways/services/nat.service';
 
 @Module({
   imports: [ConfigModule.forRoot(), HttpModule,
@@ -25,6 +26,6 @@ import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
   providers: [AppService, AudioGateway,S3Service,PrismaService,DBService, {
       provide: APP_INTERCEPTOR,
       useClass: CacheInterceptor,
-    },],
+    }, NatsService,],
 })
 export class AppModule {}

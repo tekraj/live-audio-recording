@@ -17,6 +17,12 @@ importers:
       '@keyv/redis':
         specifier: ^5.1.6
         version: 5.1.6(keyv@5.6.0)
+      '@nats-io/jetstream':
+        specifier: ^3.3.1
+        version: 3.3.1
+      '@nats-io/nats-core':
+        specifier: ^3.3.1
+        version: 3.3.1
       '@nestjs/axios':
         specifier: ^3.0.3
         version: 3.0.3(@nestjs/common@10.3.3(reflect-metadata@0.1.14)(rxjs@7.8.1))(axios@1.7.7)(rxjs@7.8.1)
@@ -59,6 +65,9 @@ importers:
       dotenv:
         specifier: ^17.2.3
         version: 17.2.3
+      nats:
+        specifier: ^2.29.3
+        version: 2.29.3
       redis:
         specifier: ^4.6.13
         version: 4.6.13
@@ -848,6 +857,20 @@ packages:
   '@lukeed/csprng@1.1.0':
     resolution: {integrity: sha512-Z7C/xXCiGWsg0KuKsHTKJxbWhpI3Vs5GwLfOean7MGyVFGqdRgBbAjOCh6u4bbjPc/8MJ2pZmK/0DLdCbivLDA==}
     engines: {node: '>=8'}
+
+  '@nats-io/jetstream@3.3.1':
+    resolution: {integrity: sha512-oTIxM47pQfv4zCMlLN7FtARxSclMlUUPPn9I3VxRwMH+N2jkj1WCApu+tSL778KuljxfG8txi/MPwoWSXqbbQQ==}
+
+  '@nats-io/nats-core@3.3.1':
+    resolution: {integrity: sha512-myFXGTo4cCfKrsLDjkoEz7FjjjvSfBRjun7Qx3n3Z5OzW4JUY8Ou7VQsGAdXLQxHN3ae/XNXvmXxshDoFPex4w==}
+
+  '@nats-io/nkeys@2.0.3':
+    resolution: {integrity: sha512-JVt56GuE6Z89KUkI4TXUbSI9fmIfAmk6PMPknijmuL72GcD+UgIomTcRWiNvvJKxA01sBbmIPStqJs5cMRBC3A==}
+    engines: {node: '>=18.0.0'}
+
+  '@nats-io/nuid@2.0.3':
+    resolution: {integrity: sha512-TpA3HEBna/qMVudy+3HZr5M3mo/L1JPofpVT4t0HkFGkz2Cn9wrlrQC8tvR8Md5Oa9//GtGG26eN0qEWF5Vqew==}
+    engines: {node: '>= 18.x'}
 
   '@nestjs/axios@3.0.3':
     resolution: {integrity: sha512-h6TCn3yJwD6OKqqqfmtRS5Zo4E46Ip2n+gK1sqwzNBC+qxQ9xpCu+ODVRFur6V3alHSCSBxb3nNtt73VEdluyA==}
@@ -2886,6 +2909,10 @@ packages:
     resolution: {integrity: sha512-avsJQhyd+680gKXyG/sQc0nXaC6rBkPOfyHYcFb9+hdkqQkR9bdnkJ0AMZhke0oesPqIO+mFFJ+IdBc7mst4IA==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
 
+  nats@2.29.3:
+    resolution: {integrity: sha512-tOQCRCwC74DgBTk4pWZ9V45sk4d7peoE2njVprMRCBXrhJ5q5cYM7i6W+Uvw2qUrcfOSnuisrX7bEx3b3Wx4QA==}
+    engines: {node: '>= 14.0.0'}
+
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
 
@@ -2895,6 +2922,10 @@ packages:
 
   neo-async@2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
+
+  nkeys.js@1.1.0:
+    resolution: {integrity: sha512-tB/a0shZL5UZWSwsoeyqfTszONTt4k2YS0tuQioMOD180+MbombYVgzDUYHlx+gejYK6rgf08n/2Df99WY0Sxg==}
+    engines: {node: '>=10.0.0'}
 
   node-abort-controller@3.1.1:
     resolution: {integrity: sha512-AGK2yQKIjRuqnc6VkX2Xj5d+QW8xZ87pa1UK6yA6ouUyuxfHuMP6umE5QK7UmTeOAymo+Zx1Fxiuw9rVx8taHQ==}
@@ -3523,6 +3554,9 @@ packages:
 
   tslib@2.6.2:
     resolution: {integrity: sha512-AEYxH93jGFPn/a2iVAwW87VuUIkR1FVUKB77NwMF7nBTDkDrrT/Hpt/IrCJ0QXhW27jTBDcf5ZY7w6RiqTMw2Q==}
+
+  tweetnacl@1.0.3:
+    resolution: {integrity: sha512-6rt+RN7aOi1nGMyC4Xa5DdYiukl2UWCbcJft7YhxReBGQD7OAM8Pbxw6YMo4r2diNEA8FEmu32YOn9rhaiE5yw==}
 
   type-check@0.4.0:
     resolution: {integrity: sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==}
@@ -4865,6 +4899,21 @@ snapshots:
       call-bind: 1.0.7
 
   '@lukeed/csprng@1.1.0': {}
+
+  '@nats-io/jetstream@3.3.1':
+    dependencies:
+      '@nats-io/nats-core': 3.3.1
+
+  '@nats-io/nats-core@3.3.1':
+    dependencies:
+      '@nats-io/nkeys': 2.0.3
+      '@nats-io/nuid': 2.0.3
+
+  '@nats-io/nkeys@2.0.3':
+    dependencies:
+      tweetnacl: 1.0.3
+
+  '@nats-io/nuid@2.0.3': {}
 
   '@nestjs/axios@3.0.3(@nestjs/common@10.3.3(reflect-metadata@0.1.14)(rxjs@7.8.1))(axios@1.7.7)(rxjs@7.8.1)':
     dependencies:
@@ -7388,11 +7437,19 @@ snapshots:
 
   mute-stream@1.0.0: {}
 
+  nats@2.29.3:
+    dependencies:
+      nkeys.js: 1.1.0
+
   natural-compare@1.4.0: {}
 
   negotiator@0.6.3: {}
 
   neo-async@2.6.2: {}
+
+  nkeys.js@1.1.0:
+    dependencies:
+      tweetnacl: 1.0.3
 
   node-abort-controller@3.1.1: {}
 
@@ -8041,6 +8098,8 @@ snapshots:
       strip-bom: 3.0.0
 
   tslib@2.6.2: {}
+
+  tweetnacl@1.0.3: {}
 
   type-check@0.4.0:
     dependencies:

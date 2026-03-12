@@ -18,27 +18,38 @@ services:
       - .env
 
   # MySQL Database
-  # db:
-  #   image: mysql:8.0
-  #   restart: always
-  #   cap_add:
-  #     - SYS_NICE
-  #   environment:
-  #     - MYSQL_DATABASE=live_audio_db
-  #     - MYSQL_ROOT_PASSWORD=mauFJcuf5dhRMQrjj
-  #   ports:
-  #     - '3308:3306'
-  #   volumes:
-  #     - db-volume:/var/lib/mysql
-  #   networks:
-  #     - audio-network
-  #   healthcheck:
-  #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot", "-pmauFJcuf5dhRMQrjj"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
-    
-    
+  db:
+    image: mysql:8.0
+    restart: always
+    cap_add:
+      - SYS_NICE
+    environment:
+      - MYSQL_DATABASE=live_audio_db
+      - MYSQL_ROOT_PASSWORD=mauFJcuf5dhRMQrjj
+    ports:
+      - '3308:3306'
+    volumes:
+      - db-volume:/var/lib/mysql
+    networks:
+      - audio-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot", "-pmauFJcuf5dhRMQrjj"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  nats:
+    image: nats:2.10-alpine
+    container_name: audio-nats
+    ports:
+      - "4222:4222" # Client port
+      - "8222:8222" # HTTP Management/Monitoring port
+    networks:
+      - audio-network
+    # -js enables JetStream, -sd sets the storage directory
+    command: ["-js", "-sd", "/data"]
+    volumes:
+      - nats-data:/data
+    restart: always
 
   # Backend - NestJS API
   backend:
@@ -56,6 +67,8 @@ services:
       - .env
     depends_on:
       - redis
+      - db
+      - nats
     networks:
       - audio-network
     volumes:
@@ -109,6 +122,24 @@ services:
   #   volumes:
   #     - audio-volume:/app/recordings
 
+  # NATS JetStream - Messaging & Persistence
+ 
+  live-transcription:
+    build:
+      context: ./live-transcription # Path to your consumer folder
+      dockerfile: Dockerfile
+    container_name: live-transcription
+    depends_on:
+      - nats
+    env_file:
+      - .env
+    environment:
+      - NATS_URL=nats://nats:4222
+      - NODE_ENV=production
+    networks:
+      - audio-network
+    restart: always
+
 networks:
   audio-network:
     driver: bridge
@@ -141,3 +172,10 @@ volumes:
       type: none
       o: bind
       device: ./data/redis
+
+  nats-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/nats

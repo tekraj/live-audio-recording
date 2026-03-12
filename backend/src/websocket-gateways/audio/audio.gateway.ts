@@ -16,6 +16,7 @@ import * as wav from 'wav';
 import type { Server } from 'ws';
 import { S3Service } from '../services/s3.service';
 import { DBService } from '../services/db.service';
+import { NatsService } from '../services/nat.service';
 
 @WebSocketGateway({
   transports: ['websocket'],
@@ -28,7 +29,7 @@ export class AudioGateway
   @WebSocketServer() server: Server;
   uploadDir = '';
   private wavFileWriters: Record<string, wav.FileWriter> = {};
-  constructor(private s3Service: S3Service, private dbService: DBService) {
+  constructor(private s3Service: S3Service, private dbService: DBService,private readonly natService: NatsService) {
     this.uploadDir = process.env.AUDIO_UPLOAD_DIR || join('public', 'audios');
     if (!existsSync(this.uploadDir)) {
       mkdirSync(this.uploadDir, { recursive: true });
@@ -72,6 +73,7 @@ export class AudioGateway
   @SubscribeMessage('recording')
   handleAudioData(client: Socket, payload: ArrayBuffer) {
     try {
+    
       const audioFileName = client.handshake.query.audioFileName as string;
       const buffer = Buffer.from(payload);
       const readable = new Readable();
@@ -82,6 +84,7 @@ export class AudioGateway
       readable.pipe(this.wavFileWriters[audioFileName], {
         end: false,
       });
+      this.natService.publishAudioChunk(audioFileName,buffer);
     } catch (e) { }
   }
   @SubscribeMessage('stop-recording')
