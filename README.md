@@ -24,11 +24,15 @@ A simple full-stack application for recording high-quality audio from the browse
 ```bash
 git clone <repository-url>
 cd live-audio-recording
+mkdir -p data/audio
+mkdir data/redis
+mkdir data/db
+mkdir data/frontend
+mkdir data/nats
 ```
 
 ### 2. Setup Environment Variables
 ```bash
-cp .env.example .env
 # Edit .env with your settings if needed
 ```
 
