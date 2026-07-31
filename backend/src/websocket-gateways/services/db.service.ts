@@ -5,7 +5,17 @@ import { PrismaService } from "./../../prisma.service";
 @Injectable()
 export class DBService {
     constructor(private readonly prismaService: PrismaService) {}
-  createAudioRecord(data: Prisma.AudioCreateInput) {
+  async createAudioRecord(data: Prisma.AudioCreateInput) {
+    const existing = await this.prismaService.audio.findFirst({
+      where: {
+        filename: data.filename,
+      },
+    });
+
+    if (existing) {
+      return existing;
+    }
+
     return this.prismaService.audio.create({
       data,
     });

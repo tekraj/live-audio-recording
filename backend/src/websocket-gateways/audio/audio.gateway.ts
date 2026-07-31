@@ -16,7 +16,7 @@ import * as wav from 'wav';
 import type { Server } from 'ws';
 import { S3Service } from '../services/s3.service';
 import { DBService } from '../services/db.service';
-import { NatsService } from '../services/nat.service';
+import { RadioAudioGateway } from '../radio/radio-audio.gateway';
 
 @WebSocketGateway({
   transports: ['websocket'],
@@ -29,7 +29,12 @@ export class AudioGateway
   @WebSocketServer() server: Server;
   uploadDir = '';
   private wavFileWriters: Record<string, wav.FileWriter> = {};
-  constructor(private s3Service: S3Service, private dbService: DBService,private readonly natService: NatsService) {
+  private closingSessions = new Set<string>();
+  constructor(
+    private s3Service: S3Service,
+    private dbService: DBService,
+    private readonly radioAudioGateway: RadioAudioGateway,
+  ) {
     this.uploadDir = process.env.AUDIO_UPLOAD_DIR || join('public', 'audios');
     if (!existsSync(this.uploadDir)) {
       mkdirSync(this.uploadDir, { recursive: true });
@@ -57,6 +62,7 @@ export class AudioGateway
         sampleRate: 44100,
         channelCount: 2,
       };
+    console.log(audioSettings);
     try {
       const existedWavFile = join(this.uploadDir, audioFileName + '.wav');
       // Audio File writer
@@ -84,7 +90,7 @@ export class AudioGateway
       readable.pipe(this.wavFileWriters[audioFileName], {
         end: false,
       });
-      this.natService.publishAudioChunk(audioFileName,buffer);
+      this.radioAudioGateway.broadcastAudioChunk(buffer);
     } catch (e) { }
   }
   @SubscribeMessage('stop-recording')
@@ -101,6 +107,15 @@ export class AudioGateway
   private async handleCloseSocket(client: Socket) {
     try {
       const audioFileName = client.handshake.query.audioFileName as string;
+      if (!audioFileName) {
+        return;
+      }
+
+      if (this.closingSessions.has(audioFileName)) {
+        return;
+      }
+      this.closingSessions.add(audioFileName);
+
       this.wavFileWriters[audioFileName]?.end();
       delete this.wavFileWriters[audioFileName];
       await this.dbService.createAudioRecord({

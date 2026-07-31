@@ -5,7 +5,6 @@ import { audioService } from "../services/audioService";
 export const useRecordAudio = () => {
   const [recordingState, setRecordingState] = useState<RecordingState>(RecordingState.IDEAL);
   const webSocketManager = useRef<WebsocketManager>();
-  const activeSessionRef = useRef<string | null>(null);
   const [audioURL,setAudioURL] = useState('');
   const [audioFile,setAudioFile] = useState('');
   const onError = (status: string, message: string) => {
@@ -26,14 +25,11 @@ export const useRecordAudio = () => {
     }
   }
   const stopRecording = () => {
-    if (!webSocketManager.current) {
-      return;
+    if (webSocketManager.current) {
+      webSocketManager.current?.stop();
+      webSocketManager.current = undefined;
+      setRecordingState(RecordingState.IDEAL);
     }
-
-    webSocketManager.current?.stop();
-    webSocketManager.current = undefined;
-    activeSessionRef.current = null;
-    setRecordingState(RecordingState.IDEAL);
   };
   useEffect(() => {
     return () => {
@@ -42,11 +38,6 @@ export const useRecordAudio = () => {
   }, []);
 
   const startRecording = async (audioFileName: string) => {
-    if (webSocketManager.current || activeSessionRef.current) {
-      return;
-    }
-
-    activeSessionRef.current = audioFileName;
     const websocketInstance = new WebsocketManager();
     websocketInstance.setQueryParams({ audioFileName });
     websocketInstance.setOnError(onError);

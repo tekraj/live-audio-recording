@@ -37,19 +37,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-  nats:
-    image: nats:2.10-alpine
-    container_name: audio-nats
-    ports:
-      - "4222:4222" # Client port
-      - "8222:8222" # HTTP Management/Monitoring port
-    networks:
-      - audio-network
-    # -js enables JetStream, -sd sets the storage directory
-    command: ["-js", "-sd", "/data"]
-    volumes:
-      - nats-data:/data
-    restart: always
+ 
 
   # Backend - NestJS API
   backend:
@@ -63,12 +51,13 @@ services:
       - "5000:5000"
     environment:
       - NODE_ENV=production
+      - USE_S3=${USE_S3:-false}
+      - AUDIO_UPLOAD_DIR=/app/audio-recordings
     env_file:
       - .env
     depends_on:
       - redis
       - db
-      - nats
     networks:
       - audio-network
     volumes:
@@ -86,8 +75,30 @@ services:
     container_name: audio-frontend
     env_file:
       - .env
+    environment:
+      - PORT=3000
+      - HOST=0.0.0.0
     ports:
       - "3000:3000"
+    networks:
+      - audio-network
+
+  radio-frontend:
+    build:
+      context: ./radio
+      dockerfile: Dockerfile
+      args:
+        - REACT_APP_AUDIO_SERVER_URL=${REACT_APP_AUDIO_SERVER_URL}
+        - REACT_APP_AUDIO_TRANSCRIBER_URL=${REACT_APP_AUDIO_TRANSCRIBER_URL}
+    container_name: audio-radio-frontend
+    env_file:
+      - .env
+    environment:
+      - PORT=3001
+      - HOST=0.0.0.0
+      - PUBLIC_URL=/radio
+    ports:
+      - "3001:3001"
     networks:
       - audio-network
 
@@ -104,41 +115,6 @@ services:
       - backend
     networks:
       - audio-network
-
-  # Audio Transcription Service - Python Flask
-  # audio-transcriber:
-  #   build:
-  #     context: ./audio-transcription
-  #     dockerfile: Dockerfile
-  #   container_name: audio-transcriber
-  #   ports:
-  #     - "5555:5555"
-  #   env_file:
-  #     - .env
-  #   depends_on:
-  #     - redis
-  #   networks:
-  #     - audio-network
-  #   volumes:
-  #     - audio-volume:/app/recordings
-
-  # NATS JetStream - Messaging & Persistence
- 
-  live-transcription:
-    build:
-      context: ./live-transcription # Path to your consumer folder
-      dockerfile: Dockerfile
-    container_name: live-transcription
-    depends_on:
-      - nats
-    env_file:
-      - .env
-    environment:
-      - NATS_URL=nats://nats:4222
-      - NODE_ENV=production
-    networks:
-      - audio-network
-    restart: always
 
 networks:
   audio-network:
@@ -173,9 +149,4 @@ volumes:
       o: bind
       device: ./data/redis
 
-  nats-data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./data/nats
+  

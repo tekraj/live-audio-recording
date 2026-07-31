@@ -25,11 +25,7 @@ export const AudioTable = forwardRef<AudioTableRef>((_, ref) => {
     setError(null);
     try {
       const records = await audioService.listAudioRecords();
-      const deduped = records.filter((record, index, arr) => {
-        const duplicateIndex = arr.findIndex((candidate) => candidate.id === record.id || candidate.filename === record.filename);
-        return duplicateIndex === index;
-      });
-      setAudioRecords(deduped);
+      setAudioRecords(records);
     } catch (err) {
       setError('Failed to fetch audio records');
       console.error(err);
