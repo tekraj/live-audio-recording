@@ -1,4 +1,4 @@
-// recorder-worklet.ts (or inline string)
+// recorder-worklet.ts
 export const recorderWorkletCode = `
 class RecorderProcessor extends AudioWorkletProcessor {
   constructor() {
@@ -9,6 +9,9 @@ class RecorderProcessor extends AudioWorkletProcessor {
     this.leftBuffer = new Float32Array(this.bufferSize);
     this.rightBuffer = new Float32Array(this.bufferSize);
     this.bufferIndex = 0;
+    
+    // Configurable noise threshold (0.001 to 0.05). Adjust based on mic sensitivity.
+    this.noiseThreshold = 0.005; 
   }
 
   process(inputs, outputs) {
@@ -33,7 +36,20 @@ class RecorderProcessor extends AudioWorkletProcessor {
   }
 
   flush() {
-    // Interleave Float32 samples [L, R, L, R...] and convert directly to Int16 ArrayBuffer
+    // 1. Calculate RMS (Root Mean Square) to detect if chunk is just background noise
+    let sumSquares = 0;
+    for (let i = 0; i < this.bufferSize; i++) {
+      sumSquares += (this.leftBuffer[i] * this.leftBuffer[i]) + (this.rightBuffer[i] * this.rightBuffer[i]);
+    }
+    const rms = Math.sqrt(sumSquares / (this.bufferSize * 2));
+
+    // 2. Noise Gate: If volume is below threshold, drop the chunk to save backend processing
+    if (rms < this.noiseThreshold) {
+      this.bufferIndex = 0; // Reset and wait for next chunk
+      return; 
+    }
+
+    // 3. Interleave Float32 samples [L, R, L, R...] and convert directly to Int16 ArrayBuffer
     const pcm16 = new Int16Array(this.bufferSize * 2);
     let pcmIndex = 0;
 
@@ -56,6 +72,7 @@ class RecorderProcessor extends AudioWorkletProcessor {
 
 registerProcessor('recorder-processor', RecorderProcessor);
 `;
+
 export class AudioRecorder {
   isPaused = false;
   private em: DocumentFragment;
@@ -102,7 +119,9 @@ export class AudioRecorder {
 
       // 4. Handle incoming 100ms Int16 PCM chunks
       this.workletNode.port.onmessage = (event: MessageEvent<ArrayBuffer>) => {
+        // Because of the Worklet Noise Gate, this will ONLY fire when active sound is detected
         const pcmBuffer = this.isPaused ? new ArrayBuffer(0) : event.data;
+        if (pcmBuffer.byteLength === 0) return;
 
         const dataEvent: any = new Event('dataavailable');
         dataEvent.data = pcmBuffer;
@@ -119,7 +138,6 @@ export class AudioRecorder {
   }
 
   async stop() {
-    // Disconnect audio nodes
     if (this.sourceNode) {
       this.sourceNode.disconnect();
       this.sourceNode = undefined;
@@ -135,7 +153,6 @@ export class AudioRecorder {
       this.audioContext = undefined;
     }
 
-    // Stop mic hardware tracks
     this.stream?.getAudioTracks().forEach((track) => {
       track.stop();
       this.stream?.removeTrack(track);
@@ -147,11 +164,11 @@ export class AudioRecorder {
     }
   }
 
-  addEventListener(event: string, data: any) {
-    this.em.addEventListener(event, data);
+  addEventListener(event: string, callback: EventListener) {
+    this.em.addEventListener(event, callback);
   }
 
-  removeEventListener(event: string, callback: any) {
+  removeEventListener(event: string, callback: EventListener) {
     this.em.removeEventListener(event, callback);
   }
 

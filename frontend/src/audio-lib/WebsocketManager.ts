@@ -26,13 +26,16 @@ export class WebsocketManager {
     const constraints = {
       audio: deviceId ? {
         deviceId: { exact: deviceId },
-        echoCancellation: false,
-        noiseSuppression: false,
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,    // Normalizes volume
       }:{
-         echoCancellation: false,
-        noiseSuppression: false,
+         echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,    // Normalizes volume
       },
     };
+    
     try {
       this.mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
       this.audioRecorder = new AudioRecorder(this.mediaStream);
